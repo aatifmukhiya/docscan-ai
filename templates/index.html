@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DocScan AI </title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=IBM+Plex+Mono:wght@400;500&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0d0f0e; --surface: #141714; --border: #232623;
+      --accent: #a8ff5a; --accent-dim: #6faa38; --accent-e: #1a2e0a;
+      --text: #e8ede8; --muted: #5a6b5a; --error: #ff6b6b;
+      --card: #171a17; --orange: #ffaa44; --blue: #60a5fa; --purple: #c084fc;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:'Lora',Georgia,serif;min-height:100vh;}
+    body::before{content:'';position:fixed;inset:0;
+      background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+      background-size:40px 40px;opacity:.35;pointer-events:none;}
+
+    header{padding:1.5rem 2rem;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;
+      position:relative;z-index:1;background:#0a0c0a;}
+    .logo{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;letter-spacing:-1px;}
+    .logo span{color:var(--accent);}
+    .logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;
+      display:inline-block;margin-left:3px;vertical-align:middle;animation:pulse 2s infinite;}
+    .header-right{display:flex;gap:.6rem;align-items:center;}
+    .badge{font-family:'IBM Plex Mono',monospace;font-size:.7rem;border:1px solid var(--border);
+      padding:.3rem .7rem;border-radius:100px;color:var(--muted);}
+    .badge-green{font-family:'IBM Plex Mono',monospace;font-size:.7rem;
+      border:1px solid rgba(168,255,90,.3);padding:.3rem .7rem;border-radius:100px;
+      color:var(--accent);background:rgba(168,255,90,.06);}
+
+    main{max-width:1060px;margin:0 auto;padding:2.5rem 1.5rem;position:relative;z-index:1;}
+
+    .hero{text-align:center;margin-bottom:2.5rem;animation:fadeIn .7s ease both;}
+    .hero h1{font-family:'Syne',sans-serif;font-size:clamp(2rem,5vw,3.4rem);
+      font-weight:800;letter-spacing:-2px;line-height:1.05;margin-bottom:.75rem;}
+    .hero h1 em{font-style:italic;font-family:'Lora',serif;color:var(--accent);font-weight:400;}
+    .hero p{color:var(--muted);font-size:.95rem;max-width:520px;margin:0 auto;line-height:1.7;}
+    .formats{display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap;margin-top:.9rem;}
+    .fmt{font-family:'IBM Plex Mono',monospace;font-size:.65rem;padding:.2rem .55rem;
+      border-radius:4px;background:var(--card);border:1px solid var(--border);color:var(--muted);}
+    .fmt.hi{border-color:rgba(168,255,90,.3);color:var(--accent);}
+
+    .mode-bar{display:flex;gap:.5rem;justify-content:center;margin-bottom:2rem;flex-wrap:wrap;}
+    .mode-btn{font-family:'IBM Plex Mono',monospace;font-size:.76rem;padding:.5rem 1rem;
+      border-radius:100px;border:1px solid var(--border);background:transparent;
+      color:var(--muted);cursor:pointer;transition:all .2s;}
+    .mode-btn:hover{border-color:var(--accent-dim);color:var(--text);}
+    .mode-btn.active{background:var(--accent);color:#0d0f0e;border-color:var(--accent);font-weight:500;}
+
+    .upload-zone{border:1.5px dashed var(--border);border-radius:10px;padding:3rem 2rem;
+      text-align:center;cursor:pointer;transition:all .2s;background:var(--card);
+      position:relative;overflow:hidden;margin-bottom:1.25rem;}
+    .upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:#111411;}
+    .upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+    .upload-icon{font-size:2.8rem;margin-bottom:.75rem;display:block;}
+    .upload-zone h3{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:.4rem;}
+    .upload-zone p{color:var(--muted);font-size:.85rem;}
+
+    #preview-wrap{display:none;margin-bottom:1.25rem;}
+    .preview-label{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted);
+      text-transform:uppercase;letter-spacing:.1em;margin-bottom:.4rem;}
+    #preview-img{max-height:220px;max-width:100%;border-radius:6px;border:1px solid var(--border);}
+
+    #pdf-notice{display:none;background:rgba(168,255,90,.06);border:1px solid rgba(168,255,90,.2);
+      border-radius:8px;padding:.75rem 1rem;font-family:'IBM Plex Mono',monospace;
+      font-size:.8rem;color:var(--accent);margin-bottom:1.25rem;animation:fadeIn .3s ease;}
+
+    .settings-row{display:flex;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;}
+    .setting-group{display:flex;flex-direction:column;gap:.35rem;flex:1;min-width:150px;}
+    .setting-group label{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted);
+      text-transform:uppercase;letter-spacing:.08em;}
+    .setting-group select{background:var(--card);border:1px solid var(--border);color:var(--text);
+      padding:.55rem .85rem;border-radius:6px;font-family:'IBM Plex Mono',monospace;
+      font-size:.8rem;outline:none;cursor:pointer;transition:border-color .2s;appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%235a6b5a' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:right .75rem center;padding-right:2rem;}
+    .setting-group select:focus{border-color:var(--accent-dim);}
+
+    .error-box{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);
+      border-radius:8px;padding:.75rem 1rem;color:var(--error);font-family:'IBM Plex Mono',monospace;
+      font-size:.82rem;display:none;margin-bottom:1rem;white-space:pre-wrap;line-height:1.7;}
+
+    .extract-btn{width:100%;background:var(--accent);color:#0d0f0e;border:none;padding:.95rem;
+      border-radius:8px;font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;
+      cursor:pointer;transition:all .2s;margin-bottom:2rem;
+      display:flex;align-items:center;justify-content:center;gap:.5rem;}
+    .extract-btn:hover{background:#bfff6e;transform:translateY(-1px);}
+    .extract-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;transform:none;}
+    .spinner{width:16px;height:16px;border:2px solid #0d0f0e;border-top-color:transparent;
+      border-radius:50%;animation:spin .7s linear infinite;display:none;}
+
+    #results{display:none;animation:slideUp .5s ease;}
+
+    .section-label{font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.15em;
+      text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;
+      display:flex;align-items:center;gap:.5rem;}
+    .section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+    .detected-badge{display:inline-flex;align-items:center;gap:.4rem;
+      background:rgba(168,255,90,.08);border:1px solid rgba(168,255,90,.25);
+      color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:.72rem;
+      padding:.3rem .8rem;border-radius:100px;margin-bottom:1.25rem;}
+
+    .fields-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+      gap:.75rem;margin-bottom:1.5rem;}
+    .field-card{background:var(--card);border:1px solid var(--border);border-radius:8px;
+      padding:.9rem 1rem;position:relative;transition:border-color .2s;}
+    .field-card:hover{border-color:var(--accent-dim);}
+    .field-card.found{border-color:rgba(168,255,90,.3);}
+    .field-key{font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted);
+      text-transform:uppercase;letter-spacing:.08em;margin-bottom:.35rem;}
+    .field-val{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;
+      color:var(--text);word-break:break-all;}
+    .field-val.money{color:var(--accent);font-size:1.15rem;}
+    .field-val.empty{color:var(--muted);font-size:.82rem;font-weight:400;
+      font-style:italic;font-family:'Lora',serif;}
+    .copy-fld{position:absolute;top:.6rem;right:.6rem;background:none;border:none;
+      cursor:pointer;font-size:.72rem;color:var(--muted);opacity:0;transition:opacity .2s;}
+    .field-card:hover .copy-fld{opacity:1;}
+    .copy-fld:hover{color:var(--accent);}
+
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.5rem;}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:8px;
+      padding:.9rem;text-align:center;}
+    .stat-value{font-family:'Syne',sans-serif;font-size:1.7rem;font-weight:800;
+      color:var(--accent);display:block;}
+    .stat-label{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);
+      text-transform:uppercase;letter-spacing:.08em;}
+
+    .conf-bar-wrap{display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;}
+    .conf-bar-label{font-family:'IBM Plex Mono',monospace;font-size:.68rem;
+      color:var(--muted);white-space:nowrap;}
+    .conf-bar-track{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+    .conf-bar-fill{height:100%;border-radius:2px;background:var(--accent);
+      transition:width .8s ease;width:0%;}
+
+    .result-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;}
+    .result-header span{font-family:'IBM Plex Mono',monospace;font-size:.68rem;
+      color:var(--muted);text-transform:uppercase;letter-spacing:.1em;}
+    .copy-btn{font-family:'IBM Plex Mono',monospace;font-size:.7rem;background:transparent;
+      border:1px solid var(--border);color:var(--muted);padding:.3rem .7rem;
+      border-radius:4px;cursor:pointer;transition:all .2s;}
+    .copy-btn:hover,.copy-btn.copied{border-color:var(--accent);color:var(--accent);}
+
+    #result-text{background:var(--card);border:1px solid var(--border);border-radius:8px;
+      padding:1.25rem;font-family:'IBM Plex Mono',monospace;font-size:.82rem;line-height:1.85;
+      color:var(--text);min-height:120px;white-space:pre-wrap;word-break:break-word;
+      overflow-y:auto;max-height:320px;margin-bottom:1rem;}
+
+    .download-row{display:flex;gap:.6rem;}
+    .dl-btn{flex:1;font-family:'IBM Plex Mono',monospace;font-size:.75rem;padding:.6rem;
+      border-radius:6px;border:1px solid var(--border);background:transparent;
+      color:var(--muted);cursor:pointer;transition:all .2s;}
+    .dl-btn:hover{border-color:var(--accent-dim);color:var(--text);}
+
+    footer{text-align:center;padding:2rem;border-top:1px solid var(--border);
+      font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted);
+      position:relative;z-index:1;}
+    footer a{color:var(--accent-dim);text-decoration:none;}
+
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">DocScan<span>AI</span><span class="logo-dot"></span></div>
+  <div class="header-right">
+    <div class="badge-green">✅ PDF Support</div>
+    <div class="badge">Smart OCR </div>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <h1>Smart document <em>scanning</em><br>& field extraction</h1>
+    <p>Upload any invoice, receipt, or document — get Invoice No, Date, Amount, Customer Name extracted automatically. Supports images AND PDFs.</p>
+    <div class="formats">
+      <span class="fmt hi">📄 PDF</span>
+      <span class="fmt">PNG</span>
+      <span class="fmt">JPG</span>
+      
+    </div>
+  </div>
+
+  <div class="mode-bar">
+    <button class="mode-btn active" onclick="setMode('auto',this)">🔍 Auto Detect</button>
+    <button class="mode-btn" onclick="setMode('invoice',this)">🧾 Invoice</button>
+    <button class="mode-btn" onclick="setMode('receipt',this)">🏪 Receipt</button>
+    <button class="mode-btn" onclick="setMode('handwritten',this)">✍️ Handwritten</button>
+  </div>
+
+  <div class="upload-zone" id="dropzone">
+    <input type="file" id="file-input" accept="image/*,.pdf" onchange="handleFile(this.files[0])"/>
+    <span class="upload-icon">📄</span>
+    <h3>Drop your document here</h3>
+    <p>Invoice · Receipt · PDF · ID Card · Any document with text</p>
+  </div>
+
+  <div id="preview-wrap">
+    <div class="preview-label">Preview</div>
+    <img id="preview-img" src="" alt="Preview"/>
+  </div>
+
+  <div id="pdf-notice">📄 PDF selected — first page will be extracted automatically.</div>
+
+  <div class="settings-row">
+    <div class="setting-group">
+      <label>Language</label>
+      <select id="lang-select">
+        <option value="eng">🇺🇸 English</option>
+        <option value="hin">🇮🇳 Hindi</option>
+        <option value="fra">🇫🇷 French</option>
+        <option value="deu">🇩🇪 German</option>
+        <option value="spa">🇪🇸 Spanish</option>
+        <option value="chi_sim">🇨🇳 Chinese</option>
+        <option value="ara">🇸🇦 Arabic</option>
+        <option value="jpn">🇯🇵 Japanese</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="error-box" id="error-box"></div>
+
+  <button class="extract-btn" id="extract-btn" onclick="runOCR()" disabled>
+    <div class="spinner" id="spinner"></div>
+    <span id="btn-text">Upload a document to extract</span>
+  </button>
+
+  <div id="results">
+    <div class="detected-badge" id="detected-badge">📄 General Document</div>
+
+    <div class="section-label">Smart Extracted Fields</div>
+    <div class="fields-grid" id="fields-grid"></div>
+
+    <div class="section-label">OCR Stats</div>
+    <div class="stats-row">
+      <div class="stat-card"><span class="stat-value" id="stat-words">—</span><span class="stat-label">Words</span></div>
+      <div class="stat-card"><span class="stat-value" id="stat-chars">—</span><span class="stat-label">Characters</span></div>
+      <div class="stat-card"><span class="stat-value" id="stat-conf">—</span><span class="stat-label">Confidence</span></div>
+    </div>
+
+    <div class="conf-bar-wrap">
+      <span class="conf-bar-label">OCR Accuracy</span>
+      <div class="conf-bar-track"><div class="conf-bar-fill" id="conf-bar"></div></div>
+      <span class="conf-bar-label" id="conf-pct">0%</span>
+    </div>
+
+    <div class="section-label">Full Extracted Text</div>
+    <div class="result-header">
+      <span>Raw OCR Output</span>
+      <button class="copy-btn" id="copy-btn" onclick="copyText()">Copy</button>
+    </div>
+    <div id="result-text"></div>
+
+    <div class="download-row">
+      <button class="dl-btn" onclick="copyFields()">📋 Copy Fields</button>
+      <button class="dl-btn" onclick="downloadTxt()">⬇ .txt</button>
+      <button class="dl-btn" onclick="downloadJson()">⬇ .json</button>
+      <button class="dl-btn" onclick="downloadCsv()">⬇ .csv</button>
+    </div>
+  </div>
+</main>
+
+<footer>
+  DocScan AI · Python · Flask · Tesseract · pdf2image · Poppler &nbsp;|&nbsp;
+  <a href="https://github.com/aatifmukhiya/docscan-ai">github.com/aatifmukhiya/docscan-ai ↗</a>
+</footer>
+
+<script>
+  let currentMode = 'auto', currentFile = null, lastResult = null;
+
+  const FIELDS = [
+    {key:'invoice_number', label:'🔢 Invoice No',    money:false},
+    {key:'date',           label:'📅 Date',          money:false},
+    {key:'due_date',       label:'⏰ Due Date',       money:false},
+    {key:'total_amount',   label:'💰 Total Amount',  money:true },
+    {key:'subtotal',       label:'🧮 Subtotal',       money:false},
+    {key:'tax',            label:'📊 Tax',            money:false},
+    {key:'customer_name',  label:'👤 Customer Name', money:false},
+    {key:'vendor',         label:'🏢 Vendor / From', money:false},
+    {key:'email',          label:'📧 Email',          money:false},
+    {key:'phone',          label:'📞 Phone',          money:false},
+  ];
+  function setMode(mode, btn) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  const dz = document.getElementById('dropzone');
+  dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0]; if (f) handleFile(f);
+  });
+
+  function handleFile(file) {
+    if (!file) return;
+    currentFile = file;
+    const isPdf = file.name.toLowerCase().endsWith('.pdf');
+
+    if (file.type.startsWith('image/')) {
+      const r = new FileReader();
+      r.onload = e => {
+        document.getElementById('preview-img').src = e.target.result;
+        document.getElementById('preview-wrap').style.display = 'block';
+      };
+      r.readAsDataURL(file);
+      document.getElementById('pdf-notice').style.display = 'none';
+    } else {
+      document.getElementById('preview-wrap').style.display = 'none';
+      document.getElementById('pdf-notice').style.display = isPdf ? 'block' : 'none';
+    }
+
+    document.getElementById('extract-btn').disabled = false;
+    document.getElementById('btn-text').textContent = `Extract from "${file.name}"`;
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('error-box').style.display = 'none';
+  }
+
+  async function runOCR() {
+    if (!currentFile) return;
+    const btn = document.getElementById('extract-btn');
+    btn.disabled = true;
+    document.getElementById('spinner').style.display = 'block';
+    document.getElementById('btn-text').textContent = 'Extracting…';
+    document.getElementById('error-box').style.display = 'none';
+    document.getElementById('results').style.display = 'none';
+
+    const fd = new FormData();
+    fd.append('image', currentFile);
+    fd.append('lang', document.getElementById('lang-select').value);
+    fd.append('mode', currentMode);
+
+    try {
+      const res  = await fetch('/ocr', {method:'POST', body:fd});
+      const data = await res.json();
+      data.error ? showError(data.error) : showResult(data);
+    } catch(err) {
+      showError('Connection error — is Flask server running?\npython app.py');
+    } finally {
+      btn.disabled = false;
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('btn-text').textContent = 'Extract Again';
+    }
+  }
+
+  function showError(msg) {
+    const box = document.getElementById('error-box');
+    box.textContent = '⚠ ' + msg;
+    box.style.display = 'block';
+  }
+
+  function showResult(data) {
+    lastResult = data;
+    const f = data.fields || {};
+
+    const emoji = {'Invoice':'🧾','Receipt':'🏪','Purchase Order':'📦','ID Card':'🪪',
+      'Medical':'🏥','Bank Statement':'🏦','Contract':'📝','General Document':'📄'};
+    const dtype = f.detected_type || 'General Document';
+    document.getElementById('detected-badge').textContent = (emoji[dtype]||'📄') + ' ' + dtype + ' Detected';
+
+    const grid = document.getElementById('fields-grid');
+    grid.innerHTML = '';
+    FIELDS.forEach(cfg => {
+      const val  = f[cfg.key];
+      const card = document.createElement('div');
+      card.className = 'field-card' + (val ? ' found' : '');
+
+      const key = document.createElement('div');
+      key.className = 'field-key'; key.textContent = cfg.label;
+
+      const v = document.createElement('div');
+      if (val) {
+        v.className = 'field-val' + (cfg.money ? ' money' : '');
+        v.textContent = val;
+        const cp = document.createElement('button');
+        cp.className = 'copy-fld'; cp.textContent = '📋'; cp.title = 'Copy';
+        cp.onclick = () => { navigator.clipboard.writeText(val); cp.textContent='✅'; setTimeout(()=>cp.textContent='📋',1500); };
+        card.appendChild(cp);
+      } else {
+        v.className = 'field-val empty'; v.textContent = 'Not detected';
+      }
+      card.appendChild(key); card.appendChild(v); grid.appendChild(card);
+    });
+
+    document.getElementById('stat-words').textContent = data.word_count;
+    document.getElementById('stat-chars').textContent = data.char_count;
+    document.getElementById('stat-conf').textContent  = data.confidence + '%';
+
+    const bar = document.getElementById('conf-bar');
+    bar.style.width = data.confidence + '%';
+    bar.style.background = data.confidence > 70 ? 'var(--accent)' : data.confidence > 40 ? '#ffaa44' : '#ff6b6b';
+    document.getElementById('conf-pct').textContent = data.confidence + '%';
+
+    document.getElementById('result-text').textContent =
+      data.text || '(No text detected — try a different mode or higher quality scan)';
+    document.getElementById('results').style.display = 'block';
+  }
+
+  function copyText() {
+    navigator.clipboard.writeText(document.getElementById('result-text').textContent).then(() => {
+      const b = document.getElementById('copy-btn');
+      b.textContent='Copied!'; b.classList.add('copied');
+      setTimeout(()=>{b.textContent='Copy';b.classList.remove('copied');},2000);
+    });
+  }
+
+  function copyFields() {
+    if (!lastResult) return;
+    const f = lastResult.fields || {};
+    const txt = FIELDS.map(c => `${c.label.replace(/^\S+\s/,'')}: ${f[c.key]||'Not found'}`).join('\n');
+    navigator.clipboard.writeText(txt);
+    alert('All fields copied!');
+  }
+
+  function downloadTxt()  { if(lastResult) dl(new Blob([lastResult.text],{type:'text/plain'}),'extracted_text.txt'); }
+  function downloadJson() { if(lastResult) dl(new Blob([JSON.stringify(lastResult,null,2)],{type:'application/json'}),'document_data.json'); }
+  function downloadCsv()  {
+    if (!lastResult) return;
+    const f = lastResult.fields || {};
+    const h = FIELDS.map(c=>c.key).join(',');
+    const v = FIELDS.map(c=>`"${(f[c.key]||'').replace(/"/g,'""')}"`).join(',');
+    dl(new Blob([h+'\n'+v],{type:'text/csv'}),'document_data.csv');
+  }
+  function dl(blob,name) { const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+</script>
+</body>
+</html>
