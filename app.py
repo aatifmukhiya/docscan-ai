@@ -247,13 +247,9 @@ def ocr():
     if not allowed_file(file.filename):
         return jsonify({'error': 'File type not allowed. Use PNG, JPG, BMP, TIFF, or PDF.'}), 400
 
-   filename = str(uuid.uuid4()) + '_' + secure_filename(file.filename)
-
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-
-file.save(filepath)
+    filename = str(uuid.uuid4()) + '_' + secure_filename(file.filename)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
 
     try:
         image = open_file(filepath)
