@@ -49,12 +49,6 @@ docscan-ai/
 │
 ├── templates/
 │   └── index.html          ← Frontend UI (drag & drop, field cards, exports)
-│
-└── uploads/
-    └── .gitkeep            ← Keeps uploads/ folder in Git (files are gitignored)
-```
-
----
 
 ## ⚙️ Installation Guide (Windows)
 
@@ -87,9 +81,6 @@ python --version
 ```bash
 "C:\Program Files\Tesseract-OCR\tesseract.exe" --version
 ```
-
----
-
 ### Step 3 — Install Poppler (for PDF support)
 
 1. Go to: https://github.com/oschwartz10612/poppler-windows/releases
@@ -99,19 +90,8 @@ python --version
 5. Verify:
 ```bash
 dir "C:\Users\YOUR_USERNAME\poppler-25.12.0\Library\bin\pdftoppm.exe"
-# Mode should show -a---- (not ------)
 ```
-
-> ⚠️ **If Mode shows `------` (no permissions):** Run this to fix:
-> ```bash
-> icacls "C:\Users\YOUR_USERNAME\poppler-25.12.0" /grant YOUR_USERNAME:F /T
-> ```
-
----
-
 ### Step 4 — Install Visual C++ Redistributable
-
-> ⚠️ **Required for Poppler to work on Windows.** Without it, PDF conversion fails with error code `3221225781`.
 
 1. Download from: https://aka.ms/vs/17/release/vc_redist.x64.exe
 2. Run the installer → click Install
@@ -140,17 +120,6 @@ python -m venv venv
 
 # Activate it (run this EVERY TIME you open a new terminal)
 .\venv\Scripts\Activate.ps1
-```
-
-> ⚠️ **If activation fails** with "cannot be loaded" error:
-> ```bash
-> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-> # Press Y then Enter
-> .\venv\Scripts\Activate.ps1
-> ```
-
-You should now see `(venv)` at the start of your terminal line. ✅
-
 ---
 
 ### Step 7 — Install Python Dependencies
@@ -304,59 +273,6 @@ Accepts a document and returns extracted text + fields.
 }
 ```
 
----
-
-## 🐛 Troubleshooting
-
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `tesseract is not installed` | Tesseract not found | Install from UB-Mannheim and check path in app.py line 8 |
-| `0% confidence / no text` | Wrong Tesseract path | Update `tesseract_cmd` in app.py |
-| `PDF conversion failed: Unable to get page count` | Wrong Poppler path | Update `POPPLER_PATH` in app.py |
-| Return code `3221225781` | Missing Visual C++ DLL | Install from https://aka.ms/vs/17/release/vc_redist.x64.exe then restart PC |
-| `venv module could not be loaded` | venv not created yet | Run `python -m venv venv` first |
-| `Activate.ps1 cannot be loaded` | PowerShell policy | Run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` |
-| `pdf2image not installed` | Not in venv | Run `pip install pdf2image` with venv active |
-| `TemplateNotFound: index.html` | Wrong folder | Make sure `index.html` is inside `templates/` folder |
-| Port 5000 already in use | Another app running | Change port: `app.run(port=5001)` in app.py |
-
----
-
-## 🚀 GitHub Upload
-
-### First Time
-```bash
-cd C:\Users\YOUR_USERNAME\Desktop\docscan-ai
-git init
-git add .
-git commit -m "Initial commit: DocScan AI v3.0"
-git remote add origin https://github.com/YOUR_USERNAME/docscan-ai.git
-git branch -M main
-git push -u origin main
-```
-
-### After Every Update
-```bash
-git add .
-git commit -m "Describe your change here"
-git push
-```
-
-### What Gets Uploaded vs Ignored
-
-| File / Folder | Uploaded? | Reason |
-|--------------|-----------|--------|
-| `app.py` | ✅ Yes | Main code |
-| `templates/index.html` | ✅ Yes | Frontend |
-| `requirements.txt` | ✅ Yes | Dependencies |
-| `README.md` | ✅ Yes | Docs |
-| `.gitignore` | ✅ Yes | Git rules |
-| `venv/` | ❌ No | Too large — everyone creates their own |
-| `uploads/*` | ❌ No | User files (privacy) |
-| `__pycache__/` | ❌ No | Python cache |
-| Poppler folder | ❌ No | Must be installed locally |
-
----
 
 ## 💡 Daily Commands (Quick Reference)
 
@@ -375,26 +291,5 @@ python app.py
 
 # 5. Stop app
 # Ctrl + C
-```
-
----
-
-## 📌 Important Paths
-
-```
-Tesseract EXE:  C:\Program Files\Tesseract-OCR\tesseract.exe
-Poppler bin:    C:\Users\YOUR_USERNAME\poppler-25.12.0\Library\bin\
-Project folder: C:\Users\YOUR_USERNAME\Desktop\docscan-ai\
-Virtual env:    C:\Users\YOUR_USERNAME\Desktop\docscan-ai\venv\
-App URL:        http://127.0.0.1:5000
-```
-
----
-
-## 📄 License
-
-MIT License — free to use, modify, and distribute.
-
----
 
 *DocScan AI v3.0 · Built with Python, Flask, Tesseract OCR, pdf2image & Poppler*
